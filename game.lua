@@ -37,6 +37,7 @@ function UpdateChangeSpeed(player)
             if SkillG[player.name]<SpeedList[player.name].time then
                 player.maxspeed=SpeedList[player.name].speed
             else
+                
                 if SpeedList[player.name].reset then
                     player.maxspeed=1
                 end
