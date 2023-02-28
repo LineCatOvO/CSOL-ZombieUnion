@@ -78,7 +78,7 @@ function Trap(Me)--大肥：拉个最近的人直接出鬼手，锁他三秒
     end
     if NearestPlayer==nil or (((NearestPlayer.position.x-Me.position.x)^2
     +(NearestPlayer.position.y-Me.position.y)^2
-    +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>8 then return false end
+    +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>13 then return false end
     local victimposition=NearestPlayer.position--离得最近的倒霉蛋的位置
     NearestPlayer.position=victimposition--把最近的人困住五秒
     if TrapList[NearestPlayer.name]~=nil then
@@ -95,8 +95,10 @@ function UpdateTrapPlayer(player)
     if TrapList[player.name]~=nil then
         if TrapList[player.name].time~=0 then
             if SkillG[player.name]<TrapList[player.name].time then
-                TrapList.player.position.x=TrapList.position.x
-            TrapList.player.position.y=TrapList.position.y
+                TrapList.player.position={
+                    x=TrapList.position.x,
+                    y=TrapList.position.y
+                }
             else
                 TrapList[player.name]=nil
                 return
