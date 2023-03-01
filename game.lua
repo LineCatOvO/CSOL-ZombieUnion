@@ -29,7 +29,7 @@ SkillGTime[Game.MODEL.NORMAL_ZOMBIE]=8
 SkillGTime[Game.MODEL.LIGHT_ZOMBIE]=8
 SkillGTime[Game.MODEL.HEAVY_ZOMBIE]=0
 
-SkillGList={}--僵尸技能表（已废弃）
+--[[SkillGList={}--僵尸技能表（已废弃）
 SkillGList[Game.MODEL.NORMAL_ZOMBIE]={}
 SkillGList[Game.MODEL.NORMAL_ZOMBIE][G]=ZombieSpeedBoost
 SkillGList[Game.MODEL.LIGHT_ZOMBIE]={}
@@ -52,7 +52,7 @@ SkillGList[Game.MODEL.LILITH_ZOMBIE]={}
 SkillGList[Game.MODEL.CHASER_ZOMBIE]={}
 SkillGList[Game.MODEL.BLOTTER_ZOMBIE]={}
 SkillGList[Game.MODEL.RUSTYWING_ZOMBIE]={}
-SkillGList[Game.MODEL.AKSHA_ZOMBIE]={}
+SkillGList[Game.MODEL.AKSHA_ZOMBIE]={}]]--
 local LastTime={}--上一次Update结束时间
 local GameTime=0--当前游戏时间
 local TDM = Game.Rule
@@ -493,22 +493,22 @@ function TDM:OnPlayerSignal(player,signal)
             FindEntityByName(player.name).health=400
             FindEntityByName(player.name).maxhealth=400
             player:ShowBuymenu()
-            ResetSkillGCoolDown()
+            ResetSkillGCoolDown(player)
         elseif signal==2 then
             player.model=Game.MODEL.NORMAL_ZOMBIE
             FindEntityByName(player.name).health=2500
             FindEntityByName(player.name).maxhealth=2500
-            ResetSkillGCoolDown()
+            ResetSkillGCoolDown(player)
         elseif signal==3 then
             player.model=Game.MODEL.LIGHT_ZOMBIE
             FindEntityByName(player.name).health=1300
             FindEntityByName(player.name).maxhealth=1300
-            ResetSkillGCoolDown()
+            ResetSkillGCoolDown(player)
         elseif signal==4 then
             player.model=Game.MODEL.HEAVY_ZOMBIE
             FindEntityByName(player.name).health=3500
             FindEntityByName(player.name).maxhealth=3500
-            ResetSkillGCoolDown()
+            ResetSkillGCoolDown(player)
         --[[elseif signal==19 then
             player.model=Game.MODEL.PHYCHO_ZOMBIE
             FindEntityByName(player.name).health=2000
