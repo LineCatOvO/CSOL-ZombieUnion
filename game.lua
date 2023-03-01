@@ -1,14 +1,60 @@
--- 團隊死鬥Lua示範(遊戲模式)
-MySpeed=Game.SyncValue:Create("MS")
-AuthorDebug=false
-Game.Rule.breakable=false
-local SelfDamage=false
-local AccidentDamage=false
-local Skill5={}
-local Skill6={}
-local SkillG={}
-local LastTime={}
-local GameTime=0
+-- 生化盟战dev Ver0.1.1 Lua脚本
+
+
+--Author：LineCatOvO
+AuthorDebug=false--DEBUG模式开关，开启则输出控制台信息
+Game.Rule.breakable=false--地图是否可破坏
+local SelfDamage=false--对自己的伤害是否有效
+local AccidentDamage=false--是否计算意外伤害
+local Skill5={}--5技能时间刻
+local Skill6={}--6技能时间刻
+local SkillG={}--G技能时间刻
+CircleDamage="CircleDamage"
+GroupHealthRestore="HealthRestore"
+ShockWave="ShockWave"
+local WantChange=false
+local TimeExpired=false
+SpawnTime=0
+Skill5Time=15--5技能持续时间
+Skill5BadTime=4--5技能DEBUFF时间
+Skill6Time=10--6技能时间
+Skill5CoolDownTime=45--5技能冷却时间
+Skill6CoolDownTime=60--6技能冷却时间
+SkillGCoolDownTime={}--各个僵尸的技能冷却时间表
+SkillGCoolDownTime[Game.MODEL.NORMAL_ZOMBIE]=15
+SkillGCoolDownTime[Game.MODEL.LIGHT_ZOMBIE]=30
+SkillGCoolDownTime[Game.MODEL.HEAVY_ZOMBIE]=30
+SkillGTime={}--各个僵尸的技能持续时间表
+SkillGTime[Game.MODEL.NORMAL_ZOMBIE]=8
+SkillGTime[Game.MODEL.LIGHT_ZOMBIE]=8
+SkillGTime[Game.MODEL.HEAVY_ZOMBIE]=0
+
+SkillGList={}--僵尸技能表（已废弃）
+SkillGList[Game.MODEL.NORMAL_ZOMBIE]={}
+SkillGList[Game.MODEL.NORMAL_ZOMBIE][G]=ZombieSpeedBoost
+SkillGList[Game.MODEL.LIGHT_ZOMBIE]={}
+SkillGList[Game.MODEL.LIGHT_ZOMBIE][G]=LightZombieSpeedBoost
+SkillGList[Game.MODEL.HEAVY_ZOMBIE]={}
+SkillGList[Game.MODEL.HEAVY_ZOMBIE][G]=Trap
+SkillGList[Game.MODEL.PHYCHO_ZOMBIE]={}
+SkillGList[Game.MODEL.PHYCHO_ZOMBIE][G]=CircleDamage
+SkillGList[Game.MODEL.VOODOO_ZOMBIE]={}
+SkillGList[Game.MODEL.VOODOO_ZOMBIE][G]=GroupHealthRestore
+SkillGList[Game.MODEL.DEIMOS_ZOMBIE]={}
+SkillGList[Game.MODEL.DEIMOS_ZOMBIE][G]=ShockWave
+SkillGList[Game.MODEL.GANYMEDE_ZOMBIE]={}
+SkillGList[Game.MODEL.STAMPER_ZOMBIE]={}
+SkillGList[Game.MODEL.BANSHEE_ZOMBIE]={}
+SkillGList[Game.MODEL.VENOMGUARD_ZOMBIE]={}
+SkillGList[Game.MODEL.STINGFINGER_ZOMBIE]={}
+SkillGList[Game.MODEL.METATRON_ZOMBIE]={}
+SkillGList[Game.MODEL.LILITH_ZOMBIE]={}
+SkillGList[Game.MODEL.CHASER_ZOMBIE]={}
+SkillGList[Game.MODEL.BLOTTER_ZOMBIE]={}
+SkillGList[Game.MODEL.RUSTYWING_ZOMBIE]={}
+SkillGList[Game.MODEL.AKSHA_ZOMBIE]={}
+local LastTime={}--上一次Update结束时间
+local GameTime=0--当前游戏时间
 local TDM = Game.Rule
 TDM.name = "團隊死鬥"
 TDM.desc = "使用Lua制作的團隊死鬥模式"
@@ -17,7 +63,7 @@ G="G"
 DamageEnhance="DamageEnhance"
 SpeedBoost="SpeedBoost"
 local SpeedList={}
-function ChangeSpeed(player,speed,time,reset)
+function ChangeSpeed(player,speed,time,reset)--申请移速更改（僵尸不能改移速，这个基本废了）
     if SpeedList[player.name]~=nil then
         Print("错误！有多个速度改变函数出现了并行！本次加速"..speed.."持续"..time.."秒已停止")
         return
@@ -30,7 +76,7 @@ function ChangeSpeed(player,speed,time,reset)
     end
 end
 
-function UpdateChangeSpeed(player)
+function UpdateChangeSpeed(player)--实时刷新玩家速度的函数
     if SpeedList[player.name]~=nil then
     if SpeedList[player.name].speed~=-1 then
         if SpeedList[player.name].time~=0 then
@@ -54,8 +100,8 @@ function UpdateChangeSpeed(player)
     end
 end
 end
-local TrapList={}
-function Trap(Me)--大肥：拉个最近的人直接出鬼手，锁他三秒
+local TrapList={}--“鬼手”技能对象列表
+function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直接出鬼手，锁他三秒）
     local NearestPlayer=Game.Player:Create(1)--存储最近的玩家的变量
     if NearestPlayer==Me then--如果这个玩家是自己
         NearestPlayer=Game.Player:Create(2)--那就换一个
@@ -111,7 +157,7 @@ function UpdateTrapPlayer(player)
 end
 
 local InvisibleList={}
-function BeInvisible(player,time)
+function BeInvisible(player,time)--玩家隐身技能函数
     if InvisibleList[player.name]~=nil then
         Print("错误！有多个隐身函数出现了并行！已停止")
         return
@@ -144,54 +190,6 @@ function LightZombieSpeedBoost(player)
     ChangeSpeed(player,3,10,true)
 end
 
-CircleDamage="CircleDamage"
-GroupHealthRestore="HealthRestore"
-ShockWave="ShockWave"
-local WantChange=false
-local TimeExpired=false
-
-SpawnTime=0
-Skill5Time=15
-Skill5BadTime=4
-Skill6Time=10
-Skill5CoolDownTime=45
-Skill6CoolDownTime=60
-SkillGCoolDownTime={}
-SkillGCoolDownTime[Game.MODEL.NORMAL_ZOMBIE]=15
-SkillGCoolDownTime[Game.MODEL.LIGHT_ZOMBIE]=30
-SkillGCoolDownTime[Game.MODEL.HEAVY_ZOMBIE]=30
-SkillGTime={}
-SkillGTime[Game.MODEL.NORMAL_ZOMBIE]=8
-SkillGTime[Game.MODEL.LIGHT_ZOMBIE]=8
-SkillGTime[Game.MODEL.HEAVY_ZOMBIE]=0
-
-SkillGList={}
-SkillGList[Game.MODEL.NORMAL_ZOMBIE]={}
-SkillGList[Game.MODEL.NORMAL_ZOMBIE][G]=ZombieSpeedBoost
-SkillGList[Game.MODEL.LIGHT_ZOMBIE]={}
-SkillGList[Game.MODEL.LIGHT_ZOMBIE][G]=LightZombieSpeedBoost
-SkillGList[Game.MODEL.HEAVY_ZOMBIE]={}
-SkillGList[Game.MODEL.HEAVY_ZOMBIE][G]=Trap
-SkillGList[Game.MODEL.PHYCHO_ZOMBIE]={}
-SkillGList[Game.MODEL.PHYCHO_ZOMBIE][G]=CircleDamage
-SkillGList[Game.MODEL.VOODOO_ZOMBIE]={}
-SkillGList[Game.MODEL.VOODOO_ZOMBIE][G]=GroupHealthRestore
-SkillGList[Game.MODEL.DEIMOS_ZOMBIE]={}
-SkillGList[Game.MODEL.DEIMOS_ZOMBIE][G]=ShockWave
-SkillGList[Game.MODEL.GANYMEDE_ZOMBIE]={}
-SkillGList[Game.MODEL.STAMPER_ZOMBIE]={}
-SkillGList[Game.MODEL.BANSHEE_ZOMBIE]={}
-SkillGList[Game.MODEL.VENOMGUARD_ZOMBIE]={}
-SkillGList[Game.MODEL.STINGFINGER_ZOMBIE]={}
-SkillGList[Game.MODEL.METATRON_ZOMBIE]={}
-SkillGList[Game.MODEL.LILITH_ZOMBIE]={}
-SkillGList[Game.MODEL.CHASER_ZOMBIE]={}
-SkillGList[Game.MODEL.BLOTTER_ZOMBIE]={}
-SkillGList[Game.MODEL.RUSTYWING_ZOMBIE]={}
-SkillGList[Game.MODEL.AKSHA_ZOMBIE]={}
--- 可以破壞地圖
-TDM.breakable = true
-
 -- 目標分數
 local MaxKill = Game.SyncValue.Create("MaxKill")
 MaxKill.value = 50
@@ -215,17 +213,19 @@ function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
     end
     if attacker~=nil then
         print(attacker.name.."攻击了"..victim.name)
+        if attacker.model~=Game.MODEL.DEFAULT then
+            return damage/4
+        end
         local a,b =math.modf(damage)
         if attacker==victim then
             if SelfDamage==false then--设置自己伤害自己
                 return 0 end--自己对自己伤害无效
             end
         if attacker.model==Game.MODEL.DEFAULT and IfSkillActive(6,attacker) then
-            damage=damage*3
             a,b =math.modf(damage)
             Print(attacker.name.."的6造成伤害"..damage)
-            FindEntityByName(attacker.name).maxarmor=(1000+a)
-                return damage--开6的数值实现部分
+            FindEntityByName(attacker.name).maxarmor=(1000+a*3)
+                return damage*3--开6的数值实现部分
         end
         FindEntityByName(attacker.name).maxarmor=(1000+a)
     end
