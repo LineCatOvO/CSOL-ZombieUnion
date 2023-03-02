@@ -1,5 +1,4 @@
 -- 生化盟战dev Ver0.1.1 Lua脚本
---233
 
 --Author：LineCatOvO
 AuthorDebug=false--DEBUG模式开关，开启则输出控制台信息
