@@ -1,4 +1,4 @@
 {
-    "game": ["game.lua"], 
+    "game": ["game.lua","OnPlayerAttack.lua"], 
     "ui": ["ui.lua"]
 }
