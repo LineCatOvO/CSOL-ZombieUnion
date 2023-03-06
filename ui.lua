@@ -44,10 +44,6 @@ function MaxKill:OnSync()
 end
 LastTime=0
 
-function UI.Event:OnUpdate(time)
-    UI.Signal(999)
-end
-
 function UI.Event:OnChat(inputs)
     if inputs=="kill" then
         UI.Signal(666)

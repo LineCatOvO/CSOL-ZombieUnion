@@ -1,4 +1,4 @@
 {
-    "game": ["game.lua","OnPlayerAttack.lua"], 
-    "ui": ["ui.lua"]
+    "game": ["game.lua","OnPlayerAttack.lua","GameUpdate.lua"], 
+    "ui": ["ui.lua","SignalReceiver.lua","ShowKillIco.lua","UIUpdate.lua"]
 }
