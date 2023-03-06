@@ -1,4 +1,5 @@
-function Game.Rule:OnUpdate(time)
+--In Game Module
+function Game.Rule:OnUpdate(time)--此Update来自Game.Rule，每秒刷新约10次
     GameTime=time
     if SpawnTime==0 then
         SpawnTime=time
@@ -6,7 +7,7 @@ function Game.Rule:OnUpdate(time)
     
 end
 
-function Update(player)
+function Update(player)--此update来自UI.Signal，每秒刷新约100次
     local time=GameTime
     if LastTime[player.name]==nil then
         LastTime[player.name]=0
