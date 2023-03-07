@@ -3,16 +3,16 @@
 --Author：LineCatOvO
 AuthorDebug=false--DEBUG模式开关，开启则输出控制台信息
 Game.Rule.breakable=false--地图是否可破坏
-local SelfDamage=false--对自己的伤害是否有效
-local AccidentDamage=false--是否计算意外伤害
-local Skill5={}--5技能时间刻
-local Skill6={}--6技能时间刻
-local SkillG={}--G技能时间刻
+  SelfDamage=false--对自己的伤害是否有效
+  AccidentDamage=false--是否计算意外伤害
+  Skill5={}--5技能时间刻
+  Skill6={}--6技能时间刻
+  SkillG={}--G技能时间刻
 CircleDamage="CircleDamage"
 GroupHealthRestore="HealthRestore"
 ShockWave="ShockWave"
-local WantChange=false
-local TimeExpired=false
+  WantChange=false
+  TimeExpired=false
 SpawnTime=0
 Skill5Time=15--5技能持续时间
 Skill5BadTime=4--5技能DEBUFF时间
@@ -52,16 +52,16 @@ SkillGList[Game.MODEL.CHASER_ZOMBIE]={}
 SkillGList[Game.MODEL.BLOTTER_ZOMBIE]={}
 SkillGList[Game.MODEL.RUSTYWING_ZOMBIE]={}
 SkillGList[Game.MODEL.AKSHA_ZOMBIE]={}]]--
-local LastTime={}--上一次Update结束时间
-local GameTime=0--当前游戏时间
-local TDM = Game.Rule
+LastTime={}--上一次Update结束时间
+GameTime=0--当前游戏时间
+TDM = Game.Rule
 TDM.name = "團隊死鬥"
 TDM.desc = "使用Lua制作的團隊死鬥模式"
 --僵尸技能表
 G="G"
 DamageEnhance="DamageEnhance"
 SpeedBoost="SpeedBoost"
-local SpeedList={}
+  SpeedList={}
 function ChangeSpeed(player,speed,time,reset)--申请移速更改（僵尸不能改移速，这个基本废了）
     if SpeedList[player.name]~=nil then
         Print("错误！有多个速度改变函数出现了并行！本次加速"..speed.."持续"..time.."秒已停止")
@@ -99,7 +99,7 @@ function UpdateChangeSpeed(player)--实时刷新玩家速度的函数
     end
 end
 end
-local TrapList={}--“鬼手”技能对象列表
+  TrapList={}--“鬼手”技能对象列表
 function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直接出鬼手，锁他三秒）
     local NearestPlayer=Game.Player:Create(1)--存储最近的玩家的变量
     if NearestPlayer==Me then--如果这个玩家是自己
@@ -155,7 +155,7 @@ function UpdateTrapPlayer(player)
     end
 end
 
-local InvisibleList={}
+  InvisibleList={}
 function BeInvisible(player,time)--玩家隐身技能函数
     if InvisibleList[player.name]~=nil then
         Print("错误！有多个隐身函数出现了并行！已停止")

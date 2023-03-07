@@ -1,6 +1,14 @@
 {
     "Lua.diagnostics.globals": [
         "Game",
-        "UI"
+        "UI",
+        "Skill5",
+        "Skill6",
+        "SkillG",
+        "a",
+        "UITime",
+        "Update",
+        "AccidentDamage",
+        "SelfDamage"
     ]
 }

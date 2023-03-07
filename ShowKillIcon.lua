@@ -14,7 +14,7 @@ ShowKillTimePeriod=0
 function UpdateRefreshKillIcon()--如果有正在显示的box，那么就逐渐把透明度降低为0。
     for i=1,#KillBoxTable do
     local mya=KillBoxTable[i]:Get(a)
-        if mya!=0 then
+        if mya~=0 then
             if UITime-ShowKillTimePeriod>0.05 then
                 KillBoxTable[i]:Set({a=mya-FadeOutNum})
                 ShowKillTimePeriod=UITime
