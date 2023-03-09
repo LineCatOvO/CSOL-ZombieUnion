@@ -1,7 +1,7 @@
 ---@diagnostic disable: lowercase-global
 print("showskillicon".."已加载")
 --In UI Module
-ShowKillIconSignal=19191
+ShowKillIconSignal=1
 LastKillTime=0
 MultiKill=1
 --我们假设。。。

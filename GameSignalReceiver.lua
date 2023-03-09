@@ -1,14 +1,10 @@
 print("gamesignalreceiver".."已加载")
-button233=Game.EntityBlock:Create({x=-22,y=-10,z=0})
-
-function button233:OnUse(player)
-    player:Signal(19191)
-end
 
 function Game.Rule:OnPlayerSignal(player,signal)
     if signal==114514 then
         print("GETchou")
-        player:Signal(19191)
+        print(signal)
+        player:Signal(1)
     end
     if signal==999 then
         Update(player)
