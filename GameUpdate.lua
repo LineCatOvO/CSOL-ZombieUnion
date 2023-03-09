@@ -9,7 +9,7 @@ function Game.Rule:OnUpdate(time)--此Update来自Game.Rule，每秒刷新约10�
 end
 
 function Update(player)--此update来自UI.Signal，每秒刷新约100次
-    local time=GameTime
+    local ttime=GameTime
     if LastTime[player.name]==nil then
         LastTime[player.name]=0
     end
@@ -31,6 +31,6 @@ function Update(player)--此update来自UI.Signal，每秒刷新约100次
     UpdateChangeSpeed(player)
     UpdateTrapPlayer(player)
     UpdateInvisible(player)
-    LastTime[player.name]=time
+    LastTime[player.name]=ttime
 
 end

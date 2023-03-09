@@ -125,25 +125,24 @@ function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直�
     if NearestPlayer==nil or (((NearestPlayer.position.x-Me.position.x)^2
     +(NearestPlayer.position.y-Me.position.y)^2
     +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>13 then return false end
-    local victimposition=NearestPlayer.position--离得最近的倒霉蛋的位置
-    NearestPlayer.position=victimposition--把最近的人困住五秒
-    if TrapList[NearestPlayer.name]~=nil then
+    --把最近的人困住五秒
+    SkillG[Me.name]=0
         TrapList[NearestPlayer.name]={
             playername=NearestPlayer.name,
             time=3,
-            position=victimposition
+            position=NearestPlayer.position--离得最近的倒霉蛋的位置
         }
-return true
-    end
+    return true
 end
 
 function UpdateTrapPlayer(player)
     if TrapList[player.name]~=nil then
         if TrapList[player.name].time~=0 then
             if SkillG[player.name]<TrapList[player.name].time then
-                TrapList.player.position={
+                FindEntityByName(player.name).ToPlayer().position={
                     x=TrapList.position.x,
-                    y=TrapList.position.y
+                    y=TrapList.position.y,
+                    z=player.position.z
                 }
             else
                 TrapList[player.name]=nil
@@ -155,7 +154,6 @@ function UpdateTrapPlayer(player)
         end
     end
 end
-
   InvisibleList={}
 function BeInvisible(player,time)--玩家隐身技能函数
     if InvisibleList[player.name]~=nil then
@@ -219,7 +217,7 @@ function UpdateRunSkill5(player)--开5的实现函数
     end
 end
 
-function UpdateRunSkill6(player)--开5的实现函数  
+function UpdateRunSkill6(player)--开6的实现函数  
     if player.model==Game.MODEL.DEFAULT then
         if IfSkillActive(6,player) then
             Active6=true
@@ -255,9 +253,8 @@ if player~=nil then
                     ZombieSpeedBoost(player)
                     SkillG[player.name]=0
                 elseif player.model==Game.MODEL.HEAVY_ZOMBIE then
-                    if(Trap(player)) then
-                        SkillG[player.name]=0
-                    end
+                    Trap(player)
+                    --Trap内置skillG时间重置为0,这里就不需要写了
                 end
             end
         end
