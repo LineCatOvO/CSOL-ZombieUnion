@@ -1,6 +1,6 @@
 ---@diagnostic disable: lowercase-global
 -- 團隊死鬥Lua示範(界面)
-
+print("ui".."已加载")
 -- 在伺服器中進行同步的分數變量
 ScoreCT = UI.SyncValue.Create("ScoreCT")
 ScoreTR = UI.SyncValue.Create("ScoreTR")
@@ -50,6 +50,10 @@ function UI.Event:OnChat(inputs)
     end
     if inputs=="finish" then
         UI.Signal(9999)
+    end
+    if inputs=="test" then
+        print("Star")
+        UI.Signal(114514)
     end
 end
 

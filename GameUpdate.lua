@@ -1,4 +1,5 @@
 --In Game Module
+print("gameupdate".."已加载")
 function Game.Rule:OnUpdate(time)--此Update来自Game.Rule，每秒刷新约10次
     GameTime=time
     if SpawnTime==0 then

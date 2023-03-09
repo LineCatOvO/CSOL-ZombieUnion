@@ -1,13 +1,14 @@
 ---@diagnostic disable: lowercase-global
+print("showskillicon".."已加载")
 --In UI Module
 ShowKillIconSignal=19191
 LastKillTime=0
-MultiKill=0
+MultiKill=1
 --我们假设。。。
-local FadeOutNum=2--控制Kill图标淡出速度
+local FadeOutNum=1--控制Kill图标淡出速度
 ShowKillTimePeriod=0
-UIx=UI.ScreenSize.width/2-99
-UIy=UI.ScreenSize.height/4
+UIx=UI.ScreenSize().width/2-99
+UIy=UI.ScreenSize().height/4
 KillIconPosition={UIx,UIy}
 _boxUseNum = 0
 function _boxDraw(boxTable,setTable,pos,mult,add)
@@ -21,24 +22,31 @@ end
 
 
 function UpdateRefreshKillIcon()--如果有正在显示的box，那么就逐渐把透明度降低为0。
-    for i=1,#KillBoxTable do
-    local mya=KillBoxTable[i]:Get(a)
-        if mya~=0 then
-            if UITime-ShowKillTimePeriod>0.05 then
-                KillBoxTable[i]:Set({a=mya-FadeOutNum})
-                ShowKillTimePeriod=UITime
+    if UITime-ShowKillTimePeriod>0.015 then
+        for i=1,#KillBoxTable do
+            local a=KillBoxTable[i]:Get().a
+            if a>0 then
+                KillBoxTable[i]:Set({a=a-FadeOutNum})
             end
         end
+        ShowKillTimePeriod=UITime
     end
+
 end
 function ShowKill()
     if LastKillTime==0 then
         LastKillTime=UITime
-    end
-    if UITime-LastKillTime<5 then
-        MultiKill=MultiKill+1
     else
-        MultiKill=1
+        if UITime-LastKillTime<5 then
+            if MultiKill>3 then
+                
+            else
+                MultiKill=MultiKill+1
+            end
+        else
+            MultiKill=1
+        end
+        LastKillTime=UITime
     end
     if MultiKill==1 then
         _boxDraw(KillBoxTable,Kill1Icon[1],KillIconPosition,1,false)
