@@ -110,13 +110,13 @@ function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直�
         local player=Game.Player:Create(i)--选一个人
         if player~=player and player~=nil then
             local NowDistance=--目前的最近距离
-            ((NearestPlayer.position.x-player.position.x)^2
-            +(NearestPlayer.position.y-player.position.y)^2
-            +(NearestPlayer.position.z-player.position.z)^2)^0.5
+            ((NearestPlayer.position.x-Me.position.x)^2
+            +(NearestPlayer.position.y-Me.position.y)^2
+            +(NearestPlayer.position.z-Me.position.z)^2)^0.5
             local SelectedDistance=--选中的人的距离
-            ((player.position.x-player.position.x)^2
-            +(player.position.y-player.position.y)^2
-            +(player.position.z-player.position.z)^2)^0.5
+            ((player.position.x-Me.position.x)^2
+            +(player.position.y-Me.position.y)^2
+            +(player.position.z-Me.position.z)^2)^0.5
             if NowDistance>SelectedDistance then--如果新的比旧的近
                 NearestPlayer=player--把选择的玩家换成新的
             end--最后就能遍历出最近的玩家了
@@ -124,7 +124,7 @@ function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直�
     end
     if NearestPlayer==nil or (((NearestPlayer.position.x-Me.position.x)^2
     +(NearestPlayer.position.y-Me.position.y)^2
-    +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>13 then return false end
+    +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>13 then return false end--距离超过13则不工作
     --把最近的人困住五秒
     SkillG[Me.name]=0
         TrapList[NearestPlayer.name]={
