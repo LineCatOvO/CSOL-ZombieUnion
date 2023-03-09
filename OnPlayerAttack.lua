@@ -1,4 +1,5 @@
 function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
+    local finaldamage=damage
     if attacker==nil then
         if AccidentDamage~=true then
             return 0
@@ -7,7 +8,7 @@ function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
     if attacker~=nil then
         print(attacker.name.."攻击了"..victim.name)
         if attacker.model~=Game.MODEL.DEFAULT then
-            return damage/4
+            finaldamage=finaldamage/4
         end
         local a,b =math.modf(damage)
         if attacker==victim then
@@ -18,8 +19,15 @@ function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
             a,b =math.modf(damage)
             Print(attacker.name.."的6造成伤害"..damage)
             FindEntityByName(attacker.name).maxarmor=(1000+a*3)
-                return damage*3--开6的数值实现部分
+                finaldamage=finaldamage*3--开6的数值实现部分
         end
         FindEntityByName(attacker.name).maxarmor=(1000+a)
+        if FindEntityByName(victim.name).health-finaldamage>0 then
+            return finaldamage
+        else
+            FindEntityByName(victim.name).health=0
+            attacker:Signal(ShowKillIconSignal)
+            return 0
+        end
     end
 end
