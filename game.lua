@@ -127,8 +127,8 @@ function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直�
     +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>13 then return false end--距离超过13则不工作
     --把最近的人困住五秒
     SkillG[Me.name]=0
-        TrapList[Me.name]={
-            victimname=NearestPlayer.name,
+        TrapList[Me.name]={--Me是执行者
+            victimname=NearestPlayer.name,--victim是受害者
             time=3,
             position=NearestPlayer.position--离得最近的倒霉蛋的位置
         }
