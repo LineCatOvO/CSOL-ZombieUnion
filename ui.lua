@@ -42,7 +42,6 @@ function MaxKill:OnSync()
     local str = string.format("%02d", self.value)
     goalLabel:Set({text = str})
 end
-LastTime=0
 
 function UI.Event:OnChat(inputs)
     if inputs=="kill" then

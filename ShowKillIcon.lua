@@ -5,7 +5,7 @@ ShowKillIconSignal=1
 LastKillTime=0
 MultiKill=1
 --我们假设。。。
-local FadeOutNum=1--控制Kill图标淡出速度
+local FadeOutNum=6--控制Kill图标淡出速度
 ShowKillTimePeriod=0
 UIx=UI.ScreenSize().width/2-99
 UIy=UI.ScreenSize().height/4
@@ -22,16 +22,16 @@ end
 
 
 function UpdateRefreshKillIcon()--如果有正在显示的box，那么就逐渐把透明度降低为0。
-    if UITime-ShowKillTimePeriod>0.015 then
-        for i=1,#KillBoxTable do
-            local a=KillBoxTable[i]:Get().a
-            if a>0 then
+    for i=1,#KillBoxTable do
+        local a=KillBoxTable[i]:Get().a
+        if a>0 then
+            if a-FadeOutNum>0 then
                 KillBoxTable[i]:Set({a=a-FadeOutNum})
+            else
+                KillBoxTable[i]:Set({a=0})
             end
         end
-        ShowKillTimePeriod=UITime
     end
-
 end
 function ShowKill()
     if LastKillTime==0 then

@@ -9,6 +9,9 @@ Game.Rule.breakable=false--地图是否可破坏
   Skill5={}--5技能时间刻
   Skill6={}--6技能时间刻
   SkillG={}--G技能时间刻
+  Skill5StartTime={}
+  Skill6StartTime={}
+  SkillGStartTime={}
 CircleDamage="CircleDamage"
 GroupHealthRestore="HealthRestore"
 ShockWave="ShockWave"
@@ -127,9 +130,10 @@ function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直�
     +(NearestPlayer.position.z-Me.position.z)^2)^0.5)>13 then return false end--距离超过13则不工作
     --把最近的人困住五秒
     SkillG[Me.name]=0
+    SkillGStartTime[Me.name]=GameTime
         TrapList[Me.name]={--Me是执行者
             victimname=NearestPlayer.name,--victim是受害者
-            time=3,
+            time=5,
             position=NearestPlayer.position--离得最近的倒霉蛋的位置
         }
     return true
@@ -137,22 +141,14 @@ end
 
 function UpdateTrapPlayer(player)
     if TrapList[player.name]~=nil then
-        if TrapList[player.name].time~=0 then
-            if SkillG[player.name]<TrapList[player.name].time then
-                FindEntityByName(TrapList[player.name].victimname).ToPlayer().position={
-                    x=TrapList.position.x,
-                    y=TrapList.position.y,
-                    z=player.position.z
-                }
-                FindEntityByName(TrapList[player.name].victimname).ToPlayer().maxspeed=0;
-            else
-                TrapList[player.name]=nil
-                FindEntityByName(TrapList[player.name].victimname).ToPlayer().maxspeed=1;
-                return
-            end
+        local victim=FindEntityByName(TrapList[player.name].victimname)
+        print(victim:ToPlayer().name.."233")
+        if SkillG[player.name]<TrapList[player.name].time then
+            print(victim:ToPlayer().name)
+            victim:ToPlayer().maxspeed=0.01;
         else
             TrapList[player.name]=nil
-            FindEntityByName(TrapList[player.name].victimname).ToPlayer().maxspeed=1;
+            victim:ToPlayer().maxspeed=1.0;
             return
         end
     end
@@ -242,19 +238,23 @@ if player~=nil then
             Print(player.name.."尝试激活5")
             if Skill5[player.name]==-1 then
                 Skill5[player.name]=0
+                Skill5StartTime[player.name]=GameTime
             end
         elseif skill==6 then
             if Skill6[player.name]==-1 then
                 Skill6[player.name]=0
+                Skill6StartTime[player.name]=GameTime
             end
         elseif skill==G then
             if SkillG[player.name]==-1 then
                 if player.model==Game.MODEL.LIGHT_ZOMBIE then
                     BeInvisible(player,8)
                     SkillG[player.name]=0
+                    SkillGStartTime[player.name]=GameTime
                 elseif player.model==Game.MODEL.NORMAL_ZOMBIE then
                     ZombieSpeedBoost(player)
                     SkillG[player.name]=0
+                    SkillGStartTime[player.name]=GameTime
                 elseif player.model==Game.MODEL.HEAVY_ZOMBIE then
                     Trap(player)
                     --Trap内置skillG时间重置为0,这里就不需要写了
@@ -348,7 +348,6 @@ function ResetSkillGCoolDown(player)
 end
 
 function SkillExpireManager(player)
-    local TimePeriod=GameTime-LastTime[player.name]
     if Skill5[player.name]==nil then
         Skill5[player.name]=-1
     end
@@ -359,7 +358,7 @@ function SkillExpireManager(player)
         SkillG[player.name]=-1
     end
     if Skill5[player.name]~=-1 then
-        Skill5[player.name]=Skill5[player.name]+TimePeriod
+        Skill5[player.name]=GameTime-Skill5StartTime[player.name]
         if Skill5[player.name]<Skill5Time then
             FindEntityByName(player.name):SetRenderFX(Game.RENDERFX.GLOWSHELL)
             FindEntityByName(player.name):SetRenderColor({r=255,g=255,b=0})
@@ -372,7 +371,7 @@ function SkillExpireManager(player)
         end
     end
     if Skill6[player.name]~=-1 then
-        Skill6[player.name]=Skill6[player.name]+TimePeriod
+        Skill6[player.name]=GameTime-Skill6StartTime[player.name]
         if Skill6[player.name]<Skill6Time then
             FindEntityByName(player.name):SetRenderFX(Game.RENDERFX.GLOWSHELL)
             FindEntityByName(player.name):SetRenderColor({r=255,g=255,b=0})
@@ -385,7 +384,7 @@ function SkillExpireManager(player)
         end
     end
     if SkillG[player.name]~=-1 then
-            SkillG[player.name]=SkillG[player.name]+TimePeriod
+            SkillG[player.name]=GameTime-SkillGStartTime[player.name]
         if SkillG[player.name]>SkillGCoolDownTime[player.model] then
             SkillG[player.name]=-1
         end
@@ -395,7 +394,7 @@ end
 
 
 function FindEntityByName(name)
-for i=1,1024 do
+for i=1,512 do
     local ent=Game.GetEntity(i)
     if ent:IsPlayer() then
         local player=ent:ToPlayer()
