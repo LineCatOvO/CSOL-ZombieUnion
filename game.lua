@@ -144,12 +144,15 @@ function UpdateTrapPlayer(player)
                     y=TrapList.position.y,
                     z=player.position.z
                 }
+                FindEntityByName(TrapList[player.name].victimname).ToPlayer().maxspeed=0;
             else
                 TrapList[player.name]=nil
+                FindEntityByName(TrapList[player.name].victimname).ToPlayer().maxspeed=1;
                 return
             end
         else
             TrapList[player.name]=nil
+            FindEntityByName(TrapList[player.name].victimname).ToPlayer().maxspeed=1;
             return
         end
     end
