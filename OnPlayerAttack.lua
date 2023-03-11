@@ -25,9 +25,11 @@ function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
                 finaldamage=finaldamage*3--开6的数值实现部分
         end
         --拦截新版击杀图标
+        
         if FindEntityByName(victim.name).health-finaldamage>0 then
-            return finaldamage
+
         else
+            victim:kill()
             victim:kill()
             attacker:Signal(ShowKillIconSignal)
             finaldamage=0
