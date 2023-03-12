@@ -17,7 +17,7 @@ GroupHealthRestore="HealthRestore"
 ShockWave="ShockWave"
 WantChange=false
 TimeExpired=false
-SpawnTime=0
+SpawnTime={}
 Skill5Time=15--5技能持续时间
 Skill5BadTime=4--5技能DEBUFF时间
 Skill6Time=10--6技能时间
@@ -142,9 +142,9 @@ end
 function UpdateTrapPlayer(player)
     if TrapList[player.name]~=nil then
         local victim=FindEntityByName(TrapList[player.name].victimname)
-        print(victim:ToPlayer().name.."233")
-        if SkillG[player.name]<TrapList[player.name].time then
-            print(victim:ToPlayer().name)
+        Print(victim:ToPlayer().name.."233")
+        if SkillG[player.name]<TrapList[player.name].time and SkillG[player.name]~=-1 then
+            Print(victim:ToPlayer().name)
             victim:ToPlayer().maxspeed=0.01;
         else
             TrapList[player.name]=nil
@@ -334,7 +334,7 @@ function UpdateShowSkillByArmor(player)
                     FirstStatus=notready+percentage
                 end
             end
-            if IfCanChooseCharacter() then
+            if IfCanChooseCharacter(player) then
                 ThirdStatus=1
             else
                 ThirdStatus=0
@@ -405,8 +405,11 @@ end
 end
 end
 
-function IfCanChooseCharacter()
-    if GameTime-SpawnTime<5 then
+function IfCanChooseCharacter(player)
+    if SpawnTime[player.name]==nil then
+        SpawnTime[player.name]=0
+    end
+    if GameTime-SpawnTime[player.name]<5 then
         return true
     else
         return false
@@ -415,9 +418,12 @@ end
 
 function TDM:OnPlayerSpawn(player)
     ResetSkillGCoolDown(player)
-    SpawnTime=GameTime
+    SpawnTime[player.name]=GameTime
     if LastTime[player.name]==nil then
         LastTime[player.name]=0
+    end
+    if SpawnTime[player.name]==nil then
+        SpawnTime[player.name]=0
     end
     player.maxarmor=1000
     if player.model==Game.MODEL.DEFAULT then
@@ -432,18 +438,21 @@ function Game.Rule:OnPlayerJoiningSpawn (player)
         LastTime[player.name]=0
     end
     player.maxarmor=1000
-    SpawnTime=GameTime
+    SpawnTime[player.name]=GameTime
 end
 
 function TDM:OnPlayerKilled(victim, killer)
     -- 自殺或墜落死亡等
-    if killer == nil then
-        return
-    end
-
     -- 给擊殺的玩家團隊1分
-    local killer_team = killer.team
-    local point = Score[killer_team]
+    local killer_team
+    local point
+    if victim.team==Game.TEAM.CT then
+        point = Score[Game.TEAM.TR]
+        killer_team=Game.TEAM.TR
+    else
+        point = Score[Game.TEAM.CT]
+        killer_team=Game.TEAM.CT
+    end
     point.value = point.value + 1
 
     -- 超過目標獲得勝利！

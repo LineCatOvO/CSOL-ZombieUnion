@@ -1,9 +1,9 @@
-print("gamesignalreceiver".."已加载")
+Print("gamesignalreceiver".."已加载")
 
 function Game.Rule:OnPlayerSignal(player,signal)
     if signal==114514 then
-        print("GETchou")
-        print(signal)
+        Print("GETchou")
+        Print(signal)
         player:Signal(1)
     end
     if signal==999 then
@@ -13,10 +13,7 @@ function Game.Rule:OnPlayerSignal(player,signal)
         player:Kill()
         player:Kill()
     end
-    if IfCanChooseCharacter() then
-        if signal==9999 then
-            self:Win(Game.TEAM.CT)
-        end
+    if IfCanChooseCharacter(player) then
         if signal==1 then
             player.model=Game.MODEL.DEFAULT
             player.model=Game.MODEL.DEFAULT

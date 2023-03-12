@@ -1,7 +1,7 @@
 print("playerattack".."已加载")
 function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
     if attacker==nil then
-        if AccidentDamage~=true then
+        if AccidentDamage~=true and victim.health~=1 then
             return 0
         end
     end
@@ -22,14 +22,14 @@ function Game.Rule:OnPlayerAttack (victim, attacker, damage, weapontype, hitbox)
                 damage=damage*3--开6的数值实现部分
         end
         --拦截新版击杀图标
-        
-        if FindEntityByName(victim.name).health-damage>0 then
-
-        else
-            victim:kill()
-            victim:kill()
-            attacker:Signal(ShowKillIconSignal)
-            damage=0
+        j,k=math.modf(damage)
+        Print(FindEntityByName(victim.name).health-j)
+        if FindEntityByName(victim.name).health-j<0 then
+            Print("yes")
+            FindEntityByName(attacker.name):ToPlayer():Signal(1)
+            FindEntityByName(victim.name).health=1
+            victim.position={x=38,y=-12,z=1}
+            return 0
         end
     end
     a,b=math.modf(damage)

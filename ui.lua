@@ -45,14 +45,14 @@ end
 
 function UI.Event:OnChat(inputs)
     if inputs=="kill" then
-        UI.Signal(666)
+        --UI.Signal(666)
     end
     if inputs=="finish" then
-        UI.Signal(9999)
+        --UI.Signal(9999)
     end
     if inputs=="test" then
-        print("Star")
-        UI.Signal(114514)
+        --print("Star")
+        --UI.Signal(114514)
     end
 end
 
