@@ -143,7 +143,7 @@ function UpdateTrapPlayer(player)
     if TrapList[player.name]~=nil then
         local victim=FindEntityByName(TrapList[player.name].victimname)
         Print(victim:ToPlayer().name.."233")
-        if SkillG[player.name]<TrapList[player.name].time and SkillG[player.name]~=-1 then
+        if SkillG[player.name]<TrapList[player.name].time and IfSkillActive(G,player) and FindEntityByName(player.name).health>0 then
             Print(victim:ToPlayer().name)
             victim:ToPlayer().maxspeed=0.01;
         else
@@ -284,8 +284,10 @@ elseif skill==6 and Skill6[player.name]~=nil then
         return false
     end
 elseif skill==G and SkillG[player.name]~=nil then
-    if SkillG[player.name]>0 then
+    if SkillG[player.name]~=-1 and SkillG[player.name]<SkillGTime[player.model] then
         return true
+    else
+        return false
     end
 end
 end
@@ -329,7 +331,7 @@ function UpdateShowSkillByArmor(player)
             else
                 if SkillG[player.name]==-1 then
                     FirstStatus=readyG
-                elseif IfSkillActive(G,player) then
+                else
                     local percentage,fl=math.modf((readyG-notready)* (SkillG[player.name])/(SkillGCoolDownTime[player.model]))
                     FirstStatus=notready+percentage
                 end
