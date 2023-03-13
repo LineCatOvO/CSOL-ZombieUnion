@@ -1,0 +1,31 @@
+import java.util.Scanner;
+class MyClass {
+    public static void main(String args[])
+    {
+        Scanner scanner = new Scanner(System.in);
+        int a = scanner.nextInt();
+        int j=(int)Math.pow(10,(a-1));
+        for(;j<Math.pow(10,a)&&j>Math.pow(10,(a-1))-1;j++)
+        {
+            int cache=j;
+            int[] num=new int[a];
+            for(int k=1;k<a+1;k++)
+            {
+                if(k-1!=0)
+                {
+                    cache= (int) (cache-(num[k-2]*Math.pow(10,(a-k+1))));
+                }
+                num[k-1]= (int) (cache/Math.pow(10,(a-k)));
+            }
+            int result=0;
+            for(int k=0;k<a;k++)
+            {
+                result+=Math.pow(num[k],a);
+            }
+            if (result==j)
+            {
+                System.out.println(j);
+            }
+        }
+    }
+}
