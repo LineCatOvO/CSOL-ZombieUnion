@@ -426,6 +426,7 @@ function TDM:OnPlayerSpawn(player)
         SpawnTime[player.name]=0
     end
     player.maxarmor=1000
+    TeamBalance(player)
     if player.model==Game.MODEL.DEFAULT then
             FindEntityByName(player.name).health=400
             FindEntityByName(player.name).maxhealth=400
@@ -438,6 +439,7 @@ function Game.Rule:OnPlayerJoiningSpawn (player)
         LastTime[player.name]=0
     end
     player.maxarmor=1000
+    TeamBalance(player)
     SpawnTime[player.name]=GameTime
 end
 
