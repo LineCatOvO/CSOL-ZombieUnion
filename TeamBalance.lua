@@ -1,13 +1,13 @@
 function TeamBalance(player)
-	int ct=0,tr=0;
+	ct=0;
+	tr=0;
 	for i=1,32 do
-		local player=Game.Player:Create(i);
-		if player!=nil then
+		local player=Game.Player:Create(i)
+		if player~=nil then
 			if player.Team==Game.TEAM.CT then
-					ct++;
-				end
+				ct=ct+1;
 			else
-				tr++;
+				tr=tr+1;
 			end
 		end
 	end
