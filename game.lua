@@ -81,27 +81,27 @@ end
 
 function UpdateChangeSpeed(player)--实时刷新玩家速度的函数
     if SpeedList[player.name]~=nil then
-    if SpeedList[player.name].speed~=-1 then
-        if SpeedList[player.name].time~=0 then
-            if SkillG[player.name]<SpeedList[player.name].time then
-                player.maxspeed=SpeedList[player.name].speed
+        if SpeedList[player.name].speed~=-1 then
+            if SpeedList[player.name].time~=0 then
+                if SkillG[player.name]<SpeedList[player.name].time then
+                    player.maxspeed=SpeedList[player.name].speed
+                else
+                    if SpeedList[player.name].reset then
+                        player.maxspeed=1
+                    end
+                    SpeedList[player.name]=nil
+                    return
+                end
             else
+                player.maxspeed=SpeedList[player.name].speed
                 if SpeedList[player.name].reset then
                     player.maxspeed=1
                 end
                 SpeedList[player.name]=nil
                 return
             end
-        else
-            player.maxspeed=SpeedList[player.name].speed
-            if SpeedList[player.name].reset then
-                player.maxspeed=1
-            end
-            SpeedList[player.name]=nil
-            return
         end
     end
-end
 end
   TrapList={}--“鬼手”技能对象列表
 function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直接出鬼手，锁他三秒）
