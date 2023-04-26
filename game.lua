@@ -4,14 +4,14 @@
 print("game".."已加载")
 AuthorDebug=false--DEBUG模式开关，开启则输出控制台信息
 Game.Rule.breakable=false--地图是否可破坏
-  SelfDamage=false--对自己的伤害是否有效
-  AccidentDamage=false--是否计算意外伤害
-  Skill5={}--5技能时间刻
-  Skill6={}--6技能时间刻
-  SkillG={}--G技能时间刻
-  Skill5StartTime={}
-  Skill6StartTime={}
-  SkillGStartTime={}
+SelfDamage=false--对自己的伤害是否有效
+AccidentDamage=false--是否计算意外伤害
+Skill5={}--5技能时间刻(时间/玩家名)
+Skill6={}--6技能时间刻(时间/玩家名)
+SkillG={}--G技能时间刻(时间/玩家名)
+Skill5StartTime={}--5技能开始时间(时间/玩家名)
+Skill6StartTime={}--6技能开始时间(时间/玩家名)
+SkillGStartTime={}--7技能开始时间(时间/玩家名)
 CircleDamage="CircleDamage"
 GroupHealthRestore="HealthRestore"
 ShockWave="ShockWave"
@@ -81,27 +81,27 @@ end
 
 function UpdateChangeSpeed(player)--实时刷新玩家速度的函数
     if SpeedList[player.name]~=nil then
-    if SpeedList[player.name].speed~=-1 then
-        if SpeedList[player.name].time~=0 then
-            if SkillG[player.name]<SpeedList[player.name].time then
-                player.maxspeed=SpeedList[player.name].speed
+        if SpeedList[player.name].speed~=-1 then
+            if SpeedList[player.name].time~=0 then
+                if SkillG[player.name]<SpeedList[player.name].time then
+                    player.maxspeed=SpeedList[player.name].speed
+                else
+                    if SpeedList[player.name].reset then
+                        player.maxspeed=1
+                    end
+                    SpeedList[player.name]=nil
+                    return
+                end
             else
+                player.maxspeed=SpeedList[player.name].speed
                 if SpeedList[player.name].reset then
                     player.maxspeed=1
                 end
                 SpeedList[player.name]=nil
                 return
             end
-        else
-            player.maxspeed=SpeedList[player.name].speed
-            if SpeedList[player.name].reset then
-                player.maxspeed=1
-            end
-            SpeedList[player.name]=nil
-            return
         end
     end
-end
 end
   TrapList={}--“鬼手”技能对象列表
 function Trap(Me)--使用鬼手技能的函数（大肥：拉个最近的人直接出鬼手，锁他三秒）
@@ -208,11 +208,11 @@ function UpdateRunSkill5(player)--开5的实现函数
             player.maxspeed=1.3
         elseif Skill5[player.name]~=nil then
             if Skill5[player.name]>Skill5Time and Skill5[player.name]<Skill5Time+Skill5BadTime then
-            player.maxspeed=0.6
-        else
-            player.maxspeed=1
+                player.maxspeed=0.6
+            else
+                player.maxspeed=1
+            end
         end
-    end
     end
 end
 
@@ -428,6 +428,7 @@ function TDM:OnPlayerSpawn(player)
         SpawnTime[player.name]=0
     end
     player.maxarmor=1000
+    TeamBalance(player)
     if player.model==Game.MODEL.DEFAULT then
             FindEntityByName(player.name).health=400
             FindEntityByName(player.name).maxhealth=400
@@ -440,6 +441,7 @@ function Game.Rule:OnPlayerJoiningSpawn (player)
         LastTime[player.name]=0
     end
     player.maxarmor=1000
+    TeamBalance(player)
     SpawnTime[player.name]=GameTime
 end
 

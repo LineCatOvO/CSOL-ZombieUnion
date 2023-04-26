@@ -10,5 +10,8 @@
         "Update",
         "AccidentDamage",
         "SelfDamage"
+    ],
+    "Lua.diagnostics.disable": [
+        "lowercase-global"
     ]
 }
