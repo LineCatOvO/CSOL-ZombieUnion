@@ -1,5 +1,5 @@
 Print("gamesignalreceiver".."已加载")
-/*
+--[[
 Game的信号表
 999:Update函数用
 666:自杀
@@ -7,7 +7,7 @@ Game的信号表
 5:开5技能
 6:开6技能
 21:开G技能
-*/
+--]]
 function Game.Rule:OnPlayerSignal(player,signal)
     if signal==114514 then
         Print("GETchou")
