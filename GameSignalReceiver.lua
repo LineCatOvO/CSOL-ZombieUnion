@@ -1,4 +1,4 @@
-Print("gamesignalreceiver".."已加载")
+Print("gamesignalreceiver" .. "已加载")
 --[[
 Game的信号表
 999:Update函数用
@@ -7,44 +7,45 @@ Game的信号表
 5:开5技能
 6:开6技能
 21:开G技能
-]]--
-function Game.Rule:OnPlayerSignal(player,signal)
-    if signal==114514 then
+]]
+   --
+function Game.Rule:OnPlayerSignal(player, signal)
+    if signal == 114514 then
         Print("GETchou")
         Print(signal)
         player:Signal(1)
     end
-    if signal==999 then
+    if signal == 999 then
         Update(player)
     end
-    if signal==666 then
+    if signal == 666 then
         player:Kill()
         player:Kill()
     end
     if IfCanChooseCharacter(player) then
-        if signal==1 then
-            player.model=Game.MODEL.DEFAULT
-            player.model=Game.MODEL.DEFAULT
-            FindEntityByName(player.name).health=400
-            FindEntityByName(player.name).maxhealth=400
+        if signal == 1 then
+            player.model = Game.MODEL.DEFAULT
+            player.model = Game.MODEL.DEFAULT
+            FindEntityByName(player.name).health = 400
+            FindEntityByName(player.name).maxhealth = 400
             player:ShowBuymenu()
             ResetSkillGCoolDown(player)
-        elseif signal==2 then
-            player.model=Game.MODEL.NORMAL_ZOMBIE
-            FindEntityByName(player.name).health=2500
-            FindEntityByName(player.name).maxhealth=2500
+        elseif signal == 2 then
+            player.model = Game.MODEL.NORMAL_ZOMBIE
+            FindEntityByName(player.name).health = 2500
+            FindEntityByName(player.name).maxhealth = 2500
             ResetSkillGCoolDown(player)
-        elseif signal==3 then
-            player.model=Game.MODEL.LIGHT_ZOMBIE
-            FindEntityByName(player.name).health=1300
-            FindEntityByName(player.name).maxhealth=1300
+        elseif signal == 3 then
+            player.model = Game.MODEL.LIGHT_ZOMBIE
+            FindEntityByName(player.name).health = 1300
+            FindEntityByName(player.name).maxhealth = 1300
             ResetSkillGCoolDown(player)
-        elseif signal==4 then
-            player.model=Game.MODEL.HEAVY_ZOMBIE
-            FindEntityByName(player.name).health=3500
-            FindEntityByName(player.name).maxhealth=3500
+        elseif signal == 4 then
+            player.model = Game.MODEL.HEAVY_ZOMBIE
+            FindEntityByName(player.name).health = 3500
+            FindEntityByName(player.name).maxhealth = 3500
             ResetSkillGCoolDown(player)
-        --[[elseif signal==19 then
+            --[[elseif signal==19 then
             player.model=Game.MODEL.PHYCHO_ZOMBIE
             FindEntityByName(player.name).health=2000
             FindEntityByName(player.name).maxhealth=2000
@@ -99,22 +100,22 @@ function Game.Rule:OnPlayerSignal(player,signal)
         elseif signal==18 then
             player.model=Game.MODEL.AKSHA_ZOMBIE
             FindEntityByName(player.name).health=3000
-            FindEntityByName(player.name).maxhealth=3000]]--
+            FindEntityByName(player.name).maxhealth=3000]]
+                                                           --
         end
     end
-    if signal==5 then
-        Print(player.name.."使用了5")
-        if player.model==Game.MODEL.DEFAULT then
-            PerformSkill(5,player)
-
+    if signal == 5 then
+        Print(player.name .. "使用了5")
+        if player.model == Game.MODEL.DEFAULT then
+            PerformSkill(5, player)
         end
-    elseif signal==6 then
-        if player.model==Game.MODEL.DEFAULT then
-            PerformSkill(6,player)
+    elseif signal == 6 then
+        if player.model == Game.MODEL.DEFAULT then
+            PerformSkill(6, player)
         end
-    elseif signal==21 then
-        if player.model~=Game.MODEL.DEFAULT then
-            PerformSkill(G,player)
+    elseif signal == 21 then
+        if player.model ~= Game.MODEL.DEFAULT then
+            PerformSkill(G, player)
         end
     end
 end
