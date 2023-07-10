@@ -12,5 +12,6 @@
         "SelfDamage"
     ],
     "Lua.diagnostics.disable": ["lowercase-global"],
-    "cSpell.words": ["koro"]
+    "cSpell.words": ["koro"],
+    "cSpell.language": "en,en-US"
 }
