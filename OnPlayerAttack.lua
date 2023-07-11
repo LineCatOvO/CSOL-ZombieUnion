@@ -19,14 +19,14 @@ function Game.Rule:OnPlayerAttack(victim, attacker, damage, weapontype, hitbox)
         end
         --开6的数值实现部分
         if attacker.model == Game.MODEL.DEFAULT and IfSkillActive(6, attacker) then
-            Print(attacker.name .. "的6造成伤害" .. damage * 3)
+            Print(attacker.name .. "的6造成伤害" .. damage * 3,2)
             damage = damage * 3 --开6的数值实现部分
         end
         --拦截新版击杀图标
         j, k = math.modf(damage)
-        Print(FindEntityByName(victim.name).health - j)
+        Print(FindEntityByName(victim.name).health - j,2)
         if FindEntityByName(victim.name).health - j < 0 then
-            Print("yes")
+            Print("yes",2)
             FindEntityByName(attacker.name):ToPlayer():Signal(1)
             FindEntityByName(victim.name).health = 1
             victim.position = { x = 38, y = -12, z = 1 }

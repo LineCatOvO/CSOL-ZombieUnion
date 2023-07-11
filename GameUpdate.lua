@@ -21,9 +21,9 @@ function Update(player) --此update来自UI.Signal，每秒刷新约100次
     if SkillG[player.name] == nil then
         SkillG[player.name] = -1
     end
-    Print(player.name .. " 5 技能状态" .. Skill5[player.name])
-    Print(player.name .. " 6 技能状态" .. Skill6[player.name])
-    Print(player.name .. " G 技能状态" .. SkillG[player.name])
+    Print(player.name .. " 5 技能状态" .. Skill5[player.name], 2)
+    Print(player.name .. " 6 技能状态" .. Skill6[player.name], 2)
+    Print(player.name .. " G 技能状态" .. SkillG[player.name], 2)
     SkillExpireManager(player)
     UpdateShowSkillByArmor(player)
     UpdateRunSkill5(player)

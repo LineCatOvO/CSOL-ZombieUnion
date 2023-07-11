@@ -2,7 +2,27 @@
 
 --Author：LineCatOvO
 print("game" .. "已加载")
-AuthorDebug = false         --DEBUG模式开关，开启则输出控制台信息
+function Print(text, StrictStatus) --StrictStatus:0：随便输出，没问题的； 1：开启详细模式（可由用户开启）后可以输出(Debug开启后也可以直接输出)；  2：仅Debug模式下可输出（作者用）
+    local functionTable = {
+        [0] = function()
+            print(text)
+        end,
+        [1] = function()
+            if DetailOutput or AuthorDebug then
+                print(text)
+            end
+        end,
+        [2] = function()
+            if AuthorDebug then
+                print(text)
+            end
+        end
+    }
+    functionTable[StrictStatus]()
+end
+
+DetailOutput = false        --详细模式开关，开启后可输出详细级别的控制台信息
+AuthorDebug = false         --DEBUG模式开关，开启则输出全部控制台信息
 Game.Rule.breakable = false --地图是否可破坏
 SelfDamage = false          --对自己的伤害是否有效
 AccidentDamage = false      --是否计算意外伤害
@@ -45,50 +65,103 @@ DamageEnhance = "DamageEnhance"
 SpeedBoost = "SpeedBoost"
 
 
---To do:使用统一的表（PlayerEffectList）和方法(AttachEffect),将移速更改和禁止移动整合到一起
+--To do:使用统一的表（PlayerEffectList）和方法(AttachEffect),将移速更改、禁止移动和隐身的功能整合到一起
+
+functionTableTemplate = {
+    ["ChangeSpeed"] = function()
+
+    end,
+    ["TrapPlayer"] = function()
+
+    end,
+    ["Invisible"] = function()
+
+    end
+}
+
 PlayerEffectList = {}
-function AttachEffect(effect, player, effectInfo)
-    function checkAvaliable(e, info) --effect,effectInfo,检查信息是否无误，是否无冲突
+PlayerEffectList["ChangeSpeed"] = {}
+PlayerEffectList["TrapPlayer"] = {}
+PlayerEffectList["Invisible"] = {}
+
+function AttachEffect(effectname, player, effect)
+    assert(effectname == "ChangeSpeed" or effectname == "TrapPlayer" or effectname == "Invisible",
+        "effectname错误，请检查。效果添加函数已停止")
+    assert(player, "player为空，请检查。效果添加函数已停止")
+    assert(effect, "effect为空，请检查。效果添加函数已停止")
+    local function checkAvaliable() --effectname,effect,检查信息是否无误，是否无冲突
         local functionTable = {
             ["ChangeSpeed"] = function()
-                if (PlayerEffectList[player.name] and PlayerEffectList[player.name].effect == "ChangeSpeed")
+                if (PlayerEffectList["ChangeSpeed"][player.name] and PlayerEffectList["ChangeSpeed"][player.name].effect == "ChangeSpeed")
                 then
-                    if (PlayerEffectList[player.name].allowOverride)
+                    if (PlayerEffectList[player.name].allowOverride == 1 or (PlayerEffectList[player.name].allowOverride == 2 and effect.speed >= PlayerEffectList[player.name].speed) or (PlayerEffectList[player.name].allowOverride == 3 and effect.speed <= PlayerEffectList[player.name].speed)) --允许覆盖，或者比原数据高覆盖，或者比原数据低覆盖
                     then
-                        return false
+                        return true                                                                                                                                                                                                                                                                   --可以复写
+                    else
+                        return false                                                                                                                                                                                                                                                                  --禁止复写
                     end
                 end
             end,
             ["TrapPlayer"] = function()
 
+            end,
+            ["Invisible"] = function()
+
             end
         }
-        return true
+        functionTable[effectname]()
     end
 
-    function AddEffectRequest(e, p, info) --effect,player,effectInfo
+    local function AddEffectRequest() --调用前先做好信息检查 "checkAvaliable()"
+        local infoList = {
+            speed = effect.speed,
+            allowOverride = effect.allowOverride,
+            time = effect.time,
+            victimName = effect.victimName,
+        }
+
         local functionTable = {
             ["ChangeSpeed"] = function()
-                --speed,allowOverride,effect,time
                 --speed：限制范围
                 --allowOverride：0：禁止；1：允许；2：允许更高；3：允许更低；
-                --effect：效果名字，是什么照着写就行
                 --time：>=0：正常计算时长；-1：无限时长
+                infoList.effect = "ChangeSpeed"
+                infoList.speed = effect.speed
+                infoList.allowOverride = effect.allowOverride
+                infoList.time = effect.time
             end,
             ["TrapPlayer"] = function()
-
+                --time：困住玩家的时间，为了防止变态，不设置无限时间属性
+                --victimName：受害者玩家名字（player.name）
+                --allowOverride：覆盖设置；0：禁止；1：允许；
+                infoList.effect = "TrapPlayer"
+                infoList.victimName = effect.victimName
+                infoList.time = effect.time
+                infoList.allowOverride = effect.allowOverride
+            end,
+            ["Invisible"] = function()
+                --time：隐身时间，不提供无限时间
+                --allowOverride：覆盖设置；0：禁止；1：允许；2：叠加；
+                infoList.effect = "Invisible"
+                infoList.time = effect.time
+                infoList.allowOverride = effect.allowOverride
             end
         }
+        functionTable[effectname]()
+        PlayerEffectList[effectname][player.name] = infoList
     end
 
     local functionTable = {
         ["ChangeSpeed"] = function()
             --先检查信息是否无误，是否无冲突，整合进checkAvaliable
-            if (checkAvaliable(effect, effectInfo)) then
-                AddEffectRequest(effect, player, effectInfo)
+            if (checkAvaliable()) then
+                AddEffectRequest()
             end
         end,
         ["TrapPlayer"] = function()
+
+        end,
+        ["Invisible"] = function()
 
         end
     }
@@ -97,7 +170,8 @@ end
 SpeedList = {}
 function ChangeSpeed(player, speed, time, reset) --申请移速更改（僵尸不能改移速，这个基本废了）
     if SpeedList[player.name] ~= nil then
-        Print("错误！有多个速度改变函数出现了并行！本次加速" .. speed .. "持续" .. time .. "秒已停止")
+        Print("错误！有多个速度改变函数出现了并行！本次加速" .. speed .. "持续" .. time .. "秒已停止",
+            1)
         return
     else
         SpeedList[player.name] = {
@@ -175,9 +249,9 @@ end
 function UpdateTrapPlayer(player)
     if TrapList[player.name] ~= nil then
         local victim = FindEntityByName(TrapList[player.name].victimname)
-        Print(victim:ToPlayer().name .. "233")
+        Print(victim:ToPlayer().name .. "233", 1)
         if SkillG[player.name] < TrapList[player.name].time and IfSkillActive(G, player) and FindEntityByName(player.name).health > 0 then
-            Print(victim:ToPlayer().name)
+            Print(victim:ToPlayer().name, 1)
             victim:ToPlayer().maxspeed = 0.01;
         else
             TrapList[player.name] = nil
@@ -190,7 +264,7 @@ end
 InvisibleList = {}
 function BeInvisible(player, time) --玩家隐身技能函数
     if InvisibleList[player.name] ~= nil then
-        Print("错误！有多个隐身函数出现了并行！已停止")
+        Print("错误！有多个隐身函数出现了并行！已停止", 1)
         return
     else
         InvisibleList[player.name] = {
@@ -257,16 +331,10 @@ function UpdateRunSkill6(player) --开6的实现函数
     end
 end
 
-function Print(text)
-    if AuthorDebug == true then
-        print(text)
-    end
-end
-
 function PerformSkill(skill, player)
     if player ~= nil then
         if skill == 5 then
-            Print(player.name .. "尝试激活5")
+            Print(player.name .. "尝试激活5", 1)
             if Skill5[player.name] == -1 then
                 Skill5[player.name] = 0
                 Skill5StartTime[player.name] = GameTime
@@ -299,7 +367,7 @@ function IfSkillActive(skill, player) --返回技能是否有效
     if player ~= nil then
         if skill == 5 and Skill5[player.name] ~= nil then
             if Skill5[player.name] ~= -1 and Skill5[player.name] < Skill5Time then
-                Print(player.name .. "的5已激活")
+                Print(player.name .. "的5已激活", 1)
 
                 return true
             else
@@ -307,7 +375,7 @@ function IfSkillActive(skill, player) --返回技能是否有效
             end
         elseif skill == 6 and Skill6[player.name] ~= nil then
             if Skill6[player.name] ~= -1 and Skill6[player.name] < Skill6Time then
-                Print(player.name .. "的6已激活")
+                Print(player.name .. "的6已激活", 1)
                 return true
             else
                 return false

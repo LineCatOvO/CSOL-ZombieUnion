@@ -1,4 +1,4 @@
-Print("gamesignalreceiver" .. "已加载")
+Print("gamesignalreceiver" .. "已加载",0)
 --[[
 Game的信号表
 999:Update函数用
@@ -11,8 +11,8 @@ Game的信号表
    --
 function Game.Rule:OnPlayerSignal(player, signal)
     if signal == 114514 then
-        Print("GETchou")
-        Print(signal)
+        Print("GETchou",2)
+        Print(signal,2)
         player:Signal(1)
     end
     if signal == 999 then
@@ -105,7 +105,7 @@ function Game.Rule:OnPlayerSignal(player, signal)
         end
     end
     if signal == 5 then
-        Print(player.name .. "使用了5")
+        Print(player.name .. "使用了5",1)
         if player.model == Game.MODEL.DEFAULT then
             PerformSkill(5, player)
         end
