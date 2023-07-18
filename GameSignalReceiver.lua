@@ -121,21 +121,21 @@ function Game.Rule:OnPlayerSignal(player, signal)
         Print("added", 0)
         AttachEffect("Add", "ChangeSpeed", "LineCatOvO", {
             effect = "ChangeSpeed",
-            tag = "5",
-            speed = 3,
-            priority = 2,
+            tag = "5技能",
+            speed = 1.3,
+            priority = 1,
             allowOverride = 0,
-            time = 10,
+            time = 15,
             allowMulti = true,
             finishCallBack =
                 function()
                     AttachEffect("Add", "ChangeSpeed", "LineCatOvO", {
                         effect = "ChangeSpeed",
-                        tag = "5bad",
+                        tag = "5技能反作用",
                         speed = 0.6,
-                        priority = 1,
+                        priority = 2,
                         allowOverride = 0,
-                        time = 6,
+                        time = 4,
                         allowMulti = true,
                         startCallBack = nil,
                         finishCallBack = nil
