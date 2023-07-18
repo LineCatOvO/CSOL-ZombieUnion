@@ -27,8 +27,6 @@ function Update(player) --此update来自UI.Signal，每秒刷新约100次
     SkillExpireManager(player)
     UpdateShowSkillByArmor(player)
     UpdateRunSkill5(player)
-    UpdateChangeSpeed(player)
-    UpdateTrapPlayer(player)
-    UpdateInvisible(player)
+    EffectUpdater()
     LastTime[player.name] = ttime
 end

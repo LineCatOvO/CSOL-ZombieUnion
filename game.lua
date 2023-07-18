@@ -36,16 +36,21 @@ Skill5BadTime = 4       --5技能DEBUFF时间
 Skill6Time = 10         --6技能时间
 Skill5CoolDownTime = 45 --5技能冷却时间
 Skill6CoolDownTime = 60 --6技能冷却时间
-SkillGCoolDownTime = {} --各个僵尸的技能冷却时间表
-SkillGCoolDownTime[Game.MODEL.NORMAL_ZOMBIE] = 15
-SkillGCoolDownTime[Game.MODEL.LIGHT_ZOMBIE] = 30
-SkillGCoolDownTime[Game.MODEL.HEAVY_ZOMBIE] = 30
-SkillGTime[Game.MODEL.NORMAL_ZOMBIE] = 8
-SkillGTime[Game.MODEL.LIGHT_ZOMBIE] = 8
-SkillGTime[Game.MODEL.HEAVY_ZOMBIE] = 0
+SkillGCoolDownTime = {
+    [Game.MODEL.NORMAL_ZOMBIE] = 15,
+    [Game.MODEL.LIGHT_ZOMBIE] = 30,
+    [Game.MODEL.HEAVY_ZOMBIE] = 30
+}
+--各个僵尸的技能冷却时间表
+
+
 
 --玩家信息集合(一般格式为:时间/玩家名)
-SkillGTime = {}      --各个僵尸的技能持续时间表
+SkillGTime = {
+    [Game.MODEL.NORMAL_ZOMBIE] = 8,
+    [Game.MODEL.LIGHT_ZOMBIE] = 8,
+    [Game.MODEL.HEAVY_ZOMBIE] = 0
+}                    --各个僵尸的技能持续时间表
 SpawnTime = {}       --各个玩家的重生时间刻
 LastTime = {}        --上一次Update结束时间
 Skill5 = {}          --5技能时间刻(时间/玩家名)
@@ -85,7 +90,7 @@ ChangeSpeedAllowMulti = true
 TrapPlayerAllowMulti = true
 
 
-function AttachEffect(action, effectname, playername, effect)
+function AttachEffect(action, effectname, playername, effect) --Action: Change, Add, Delete, Get;
     --[[
         x Action: Change, Add, Delete, Get
         首先，进入函数时会先判断参数是否填写正确。
@@ -105,40 +110,22 @@ function AttachEffect(action, effectname, playername, effect)
         if (PlayerEffectList[playername])
         then
             lastkey = 0;
+            if (PlayerEffectList[playername][1] == nil) then
+                Print("Yes", 0)
+                return 1
+            end
             for key, value in ipairs(PlayerEffectList[playername])
             do
                 lastkey = key
                 local functionTable = {
                     ["ChangeSpeed"] = function()
-                        if (value.effect == "ChangeSpeed")
-                        then
-                            if (value.allowOverride == 1 or (value.allowOverride == 2 and effect.speed >= value.speed) or (value.allowOverride == 3 and effect.speed <= value.speed)) --允许覆盖，或者比原数据高覆盖，或者比原数据低覆盖
-                            then
-                                return
-                                    key               --可以复写
-                            else
-                                if (value.allowMulti) --允许多个实例
-                                then
-                                else
-                                    return -1 --禁止复写
-                                end
-                            end
-                        end
+
                     end,
                     ["TrapPlayer"] = function()
-                        if (value.effect == "TrapPlayer")
+                        if (value.allowMulti) --允许多个实例
                         then
-                            if (value.allowOverride == 1) --允许覆盖
-                            then
-                                return
-                                    key               --可以复写
-                            else
-                                if (value.allowMulti) --允许多个实例
-                                then
-                                else
-                                    return -1 --禁止复写
-                                end
-                            end
+                        else
+                            return -1 --禁止复写
                         end
                     end,
                     ["Invisible"] = function()
@@ -159,33 +146,41 @@ function AttachEffect(action, effectname, playername, effect)
                     end
                 }
                 functionTable[effectname]()
-                return lastkey + 1
             end
+            return lastkey + 1
         end
     end
 
     local function AddEffectRequest(init) --init为要放入的效果在表内的位置，或者用于识别是否需要初始化表。调用前先做好信息检查 "checkAvaliable()"
         local infoList = {
             effect = nil,
+            tag = nil,
             speed = nil,
+            priority = nil,
             allowOverride = nil,
             time = nil,
             victimName = nil,
-            allowMulti = nil
+            allowMulti = nil,
+            startTime = 0,
+            finishCallBack = nil
         }
         if (init == "init")
         then
-            PlayerEffectList[playername][0] = infoList
+            Print("Init", 0)
+            PlayerEffectList[playername] = {}
             return
         end
 
         local functionTable = {
             ["ChangeSpeed"] = function()
+                --速度如遇到多个效果，需考虑叠加后的优先级。
                 --speed：限制范围
                 --allowOverride：0：禁止；1：允许；2：允许更高；3：允许更低；
                 --time：>=0：正常计算时长；-1：无限时长
                 infoList.effect = "ChangeSpeed"
+                infoList.tag = effect.tag
                 infoList.speed = effect.speed
+                infoList.priority = effect.priority
                 infoList.allowOverride = effect.allowOverride
                 infoList.time = effect.time
                 infoList.allowMulti = ChangeSpeedAllowMulti
@@ -195,6 +190,7 @@ function AttachEffect(action, effectname, playername, effect)
                 --victimName：受害者玩家名字（player.name）
                 --allowOverride：覆盖设置；0：禁止；1：允许；
                 infoList.effect = "TrapPlayer"
+                infoList.tag = effect.tag
                 infoList.victimName = effect.victimName
                 infoList.time = effect.time
                 infoList.allowOverride = effect.allowOverride
@@ -204,28 +200,58 @@ function AttachEffect(action, effectname, playername, effect)
                 --time：隐身时间，不提供无限时间
                 --allowOverride：覆盖设置；0：禁止；1：允许；2：叠加；
                 infoList.effect = "Invisible"
+                infoList.tag = effect.tag
                 infoList.time = effect.time
                 infoList.allowOverride = effect.allowOverride
                 infoList.allowMulti = InvisibleAllowMulti
             end
         }
         functionTable[effectname]()
+        Print(GameTime, 0)
+        infoList.startTime = GameTime
+        infoList.finishCallBack = effect.finishCallBack
+        infoList.startCallBack = effect.startCallBack
         PlayerEffectList[playername][init] = infoList
     end
+    local function DeleteEffect()
+        deleteKey = 0
+        function length(t)
+            local res = 0
+            for k, v in pairs(t) do
+                res = res + 1
+            end
+            return res
+        end
 
+        for k, v in ipairs(PlayerEffectList[playername]) do
+            if v == effect then
+                deleteKey = k
+                break
+            end
+        end
+        len = length(PlayerEffectList[playername]) - 1
+        for i = deleteKey, len, 1 do
+            PlayerEffectList[playername][i] = PlayerEffectList[playername][i + 1]
+        end
+        table.remove(PlayerEffectList[playername], length(PlayerEffectList[playername]))
+    end
     --首先检查玩家是否有效果组
-    if (! PlayerEffectList[playername]) --如果没有效果组
+    if (not PlayerEffectList[playername]) --如果没有效果组
     then
         --则创建一个空的效果组
         PlayerEffectList[playername] = {}
-        AddEffectRequest("init")
     end
 
+    if action == "Delete" then
+        DeleteEffect()
+        return
+    end
     local functionTable = {
         ["ChangeSpeed"] = function()
             --先检查信息是否无误，是否无冲突，整合进checkAvaliable
-            position=checkAvaliableReturnPosition()
-            if (position~=-1) then
+            position = checkAvaliableReturnPosition()
+            Print(position, 0)
+            if (position ~= -1) then
                 AddEffectRequest(position)
             end
         end,
@@ -236,46 +262,68 @@ function AttachEffect(action, effectname, playername, effect)
 
         end
     }
+    functionTable[effectname]()
+end
+
+function EffectUpdater()
+    function ExpireManager(playername, infoList)
+        if infoList.startTime + infoList.time <= GameTime then
+            --运行结束时CallBack函数
+            if infoList.finishCallBack ~= nil then
+                infoList.finishCallBack()
+            end
+            AttachEffect("Delete", infoList.effect, playername, infoList)
+        end
+    end
+
+    function MixSpeedInfo(playername, infoList) --实时刷新玩家速度的函数
+        --[[
+            ["ChangeSpeed"] = function()
+                --speed：限制范围
+                --allowOverride：0：禁止；1：允许；2：允许更高；3：允许更低；
+                --time：>=0：正常计算时长；-1：无限时长
+                infoList.effect = "ChangeSpeed"
+                infoList.speed = effect.speed
+                infoList.tag = effect.tag
+                infoList.allowOverride = effect.allowOverride
+                infoList.time = effect.time
+                infoList.allowMulti = ChangeSpeedAllowMulti
+            end,
+            infoList.startTime=GameTime
+        ]]
+        --
+        if (Priority < infoList.priority) then
+            PlayerSpeed = infoList.speed
+            Priority = infoList.priority
+        end
+    end
+
+    for namekey, playervalue in pairs(PlayerEffectList) do
+        --ChangeSpeed
+        PlayerSpeed = 1 --没有任何效果，玩家的移速为1
+        Priority = 0
+        --end
+
+        --TrapPlayer
+
+
+        --end
+        for uselesskey, infoListValue in pairs(playervalue) do
+            Print(infoListValue.startTime, 0)
+            if infoListValue.effect == "ChangeSpeed" then
+                MixSpeedInfo(namekey, infoListValue)
+            end
+            ExpireManager(namekey, infoListValue)
+        end
+        if (PlayerSpeed ~= 1) then
+            FindPlayerByName(namekey).maxspeed = PlayerSpeed
+        end
+    end
 end
 
 SpeedList = {}
 function ChangeSpeed(player, speed, time, reset) --申请移速更改（僵尸不能改移速，这个基本废了）
-    if SpeedList[player.name] ~= nil then
-        Print("错误！有多个速度改变函数出现了并行！本次加速" .. speed .. "持续" .. time .. "秒已停止",
-            1)
-        return
-    else
-        SpeedList[player.name] = {
-            speed = speed,
-            time = time,
-            reset = reset
-        }
-    end
-end
 
-function UpdateChangeSpeed(player) --实时刷新玩家速度的函数
-    if SpeedList[player.name] ~= nil then
-        if SpeedList[player.name].speed ~= -1 then
-            if SpeedList[player.name].time ~= 0 then
-                if SkillG[player.name] < SpeedList[player.name].time then
-                    player.maxspeed = SpeedList[player.name].speed
-                else
-                    if SpeedList[player.name].reset then
-                        player.maxspeed = 1
-                    end
-                    SpeedList[player.name] = nil
-                    return
-                end
-            else
-                player.maxspeed = SpeedList[player.name].speed
-                if SpeedList[player.name].reset then
-                    player.maxspeed = 1
-                end
-                SpeedList[player.name] = nil
-                return
-            end
-        end
-    end
 end
 
 TrapList = {} --“鬼手”技能对象列表
@@ -572,6 +620,18 @@ function FindEntityByName(name)
             local player = ent:ToPlayer()
             if player.name == name then
                 return ent
+            end
+        end
+    end
+end
+
+function FindPlayerByName(name)
+    for i = 1, 512 do
+        local ent = Game.GetEntity(i)
+        if ent:IsPlayer() then
+            local player = ent:ToPlayer()
+            if player.name == name then
+                return player
             end
         end
     end

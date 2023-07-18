@@ -60,6 +60,9 @@ function UI.Event:OnChat(inputs)
         --print("Star")
         --UI.Signal(114514)
     end
+    if inputs == "change" then
+        UI.Signal(300)
+    end
 end
 
 --按下数字键时发送信号

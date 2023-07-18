@@ -1,4 +1,4 @@
-Print("gamesignalreceiver" .. "已加载",0)
+Print("gamesignalreceiver" .. "已加载", 0)
 --[[
 Game的信号表
 999:Update函数用
@@ -8,11 +8,11 @@ Game的信号表
 6:开6技能
 21:开G技能
 ]]
-   --
+--
 function Game.Rule:OnPlayerSignal(player, signal)
     if signal == 114514 then
-        Print("GETchou",2)
-        Print(signal,2)
+        Print("GETchou", 2)
+        Print(signal, 2)
         player:Signal(1)
     end
     if signal == 999 then
@@ -101,11 +101,11 @@ function Game.Rule:OnPlayerSignal(player, signal)
             player.model=Game.MODEL.AKSHA_ZOMBIE
             FindEntityByName(player.name).health=3000
             FindEntityByName(player.name).maxhealth=3000]]
-                                                           --
+            --
         end
     end
     if signal == 5 then
-        Print(player.name .. "使用了5",1)
+        Print(player.name .. "使用了5", 1)
         if player.model == Game.MODEL.DEFAULT then
             PerformSkill(5, player)
         end
@@ -117,5 +117,30 @@ function Game.Rule:OnPlayerSignal(player, signal)
         if player.model ~= Game.MODEL.DEFAULT then
             PerformSkill(G, player)
         end
+    elseif signal == 300 then
+        Print("added", 0)
+        AttachEffect("Add", "ChangeSpeed", "LineCatOvO", {
+            effect = "ChangeSpeed",
+            tag = "5",
+            speed = 3,
+            priority = 2,
+            allowOverride = 0,
+            time = 10,
+            allowMulti = true,
+            finishCallBack =
+                function()
+                    AttachEffect("Add", "ChangeSpeed", "LineCatOvO", {
+                        effect = "ChangeSpeed",
+                        tag = "5bad",
+                        speed = 0.6,
+                        priority = 1,
+                        allowOverride = 0,
+                        time = 6,
+                        allowMulti = true,
+                        startCallBack = nil,
+                        finishCallBack = nil
+                    })
+                end
+        })
     end
 end
