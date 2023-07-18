@@ -80,45 +80,104 @@ functionTableTemplate = {
 }
 
 PlayerEffectList = {}
-PlayerEffectList["ChangeSpeed"] = {}
-PlayerEffectList["TrapPlayer"] = {}
-PlayerEffectList["Invisible"] = {}
+InvisibleAllowMulti = false
+ChangeSpeedAllowMulti = true
+TrapPlayerAllowMulti = true
 
-function AttachEffect(effectname, player, effect)
+
+function AttachEffect(action, effectname, playername, effect)
+    --[[
+        x Action: Change, Add, Delete, Get
+        首先，进入函数时会先判断参数是否填写正确。
+        x然后会判断要执行什么操作，是添加效果还是移除效果
+        x如果是移除效果，需要判断参数是否合理，然后移除指定或者所有效果。
+        然后会判断当前玩家是否有效果表，如果没有效果表，则会初始化一个表。
+        首先会判断玩家要添加什么效果，这个效果是否可以添加，如果可以添加，那么要添加到表的哪个位置。
+        之后会按照位置为玩家添加效果表。
+
+    ]]
+    --
     assert(effectname == "ChangeSpeed" or effectname == "TrapPlayer" or effectname == "Invisible",
         "effectname错误，请检查。效果添加函数已停止")
-    assert(player, "player为空，请检查。效果添加函数已停止")
+    assert(playername, "player为空，请检查。效果添加函数已停止")
     assert(effect, "effect为空，请检查。效果添加函数已停止")
-    local function checkAvaliable() --effectname,effect,检查信息是否无误，是否无冲突
-        local functionTable = {
-            ["ChangeSpeed"] = function()
-                if (PlayerEffectList["ChangeSpeed"][player.name] and PlayerEffectList["ChangeSpeed"][player.name].effect == "ChangeSpeed")
-                then
-                    if (PlayerEffectList[player.name].allowOverride == 1 or (PlayerEffectList[player.name].allowOverride == 2 and effect.speed >= PlayerEffectList[player.name].speed) or (PlayerEffectList[player.name].allowOverride == 3 and effect.speed <= PlayerEffectList[player.name].speed)) --允许覆盖，或者比原数据高覆盖，或者比原数据低覆盖
-                    then
-                        return true                                                                                                                                                                                                                                                                   --可以复写
-                    else
-                        return false                                                                                                                                                                                                                                                                  --禁止复写
+    local function checkAvaliableReturnPosition() --effectname,effect,检查信息是否无误，是否无冲突，返回可用的效果表位置
+        if (PlayerEffectList[playername])
+        then
+            lastkey = 0;
+            for key, value in ipairs(PlayerEffectList[playername])
+            do
+                lastkey = key
+                local functionTable = {
+                    ["ChangeSpeed"] = function()
+                        if (value.effect == "ChangeSpeed")
+                        then
+                            if (value.allowOverride == 1 or (value.allowOverride == 2 and effect.speed >= value.speed) or (value.allowOverride == 3 and effect.speed <= value.speed)) --允许覆盖，或者比原数据高覆盖，或者比原数据低覆盖
+                            then
+                                return
+                                    key               --可以复写
+                            else
+                                if (value.allowMulti) --允许多个
+                                then
+                                else
+                                    return -1 --禁止复写
+                                end
+                            end
+                        end
+                    end,
+                    ["TrapPlayer"] = function()
+                        if (value.effect == "TrapPlayer")
+                        then
+                            if (value.allowOverride == 1) --允许覆盖
+                            then
+                                return
+                                    key               --可以复写
+                            else
+                                if (value.allowMulti) --允许多个
+                                then
+                                else
+                                    return -1 --禁止复写
+                                end
+                            end
+                        end
+                    end,
+                    ["Invisible"] = function()
+                        if (value.effect == "Invisible")
+                        then
+                            if (value.allowOverride == 1 or value.allowOverride == 2) --允许覆盖
+                            then
+                                return
+                                    key               --可以复写
+                            else
+                                if (value.allowMulti) --允许多个
+                                then
+                                else
+                                    return -1 --禁止复写
+                                end
+                            end
+                        end
                     end
-                end
-            end,
-            ["TrapPlayer"] = function()
-
-            end,
-            ["Invisible"] = function()
-
+                }
+                functionTable[effectname]()
+                return lastkey + 1
             end
-        }
-        functionTable[effectname]()
+        end
     end
 
-    local function AddEffectRequest() --调用前先做好信息检查 "checkAvaliable()"
+    local function AddEffectRequest(init) --init为要放入的效果在表内的位置，或者用于识别是否需要初始化表。调用前先做好信息检查 "checkAvaliable()"
         local infoList = {
-            speed = effect.speed,
-            allowOverride = effect.allowOverride,
-            time = effect.time,
-            victimName = effect.victimName,
+            effect = nil,
+            speed = nil,
+            allowOverride = nil,
+            time = nil,
+            victimName = nil,
+            allowMulti = nil
         }
+        if (init == "init")
+        then
+            PlayerEffectList[playername][0] = infoList
+            return
+        end
 
         local functionTable = {
             ["ChangeSpeed"] = function()
@@ -129,6 +188,7 @@ function AttachEffect(effectname, player, effect)
                 infoList.speed = effect.speed
                 infoList.allowOverride = effect.allowOverride
                 infoList.time = effect.time
+                infoList.allowMulti = ChangeSpeedAllowMulti
             end,
             ["TrapPlayer"] = function()
                 --time：困住玩家的时间，为了防止变态，不设置无限时间属性
@@ -138,6 +198,7 @@ function AttachEffect(effectname, player, effect)
                 infoList.victimName = effect.victimName
                 infoList.time = effect.time
                 infoList.allowOverride = effect.allowOverride
+                infoList.allowMulti = TrapPlayerAllowMulti
             end,
             ["Invisible"] = function()
                 --time：隐身时间，不提供无限时间
@@ -145,16 +206,25 @@ function AttachEffect(effectname, player, effect)
                 infoList.effect = "Invisible"
                 infoList.time = effect.time
                 infoList.allowOverride = effect.allowOverride
+                infoList.allowMulti = InvisibleAllowMulti
             end
         }
         functionTable[effectname]()
-        PlayerEffectList[effectname][player.name] = infoList
+        PlayerEffectList[playername][init] = infoList
+    end
+
+    --首先检查玩家是否有效果组
+    if (! PlayerEffectList[playername]) --如果没有效果组
+    then
+        --则创建一个空的效果组
+        PlayerEffectList[playername] = {}
+        AddEffectRequest("init")
     end
 
     local functionTable = {
         ["ChangeSpeed"] = function()
             --先检查信息是否无误，是否无冲突，整合进checkAvaliable
-            if (checkAvaliable()) then
+            if (checkAvaliableReturnPosition()) then
                 AddEffectRequest()
             end
         end,
