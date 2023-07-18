@@ -5,24 +5,56 @@ print("game" .. "已加载")
 function Print(text, StrictStatus) --StrictStatus:0：随便输出，没问题的； 1：开启详细模式（可由用户开启）后可以输出(Debug开启后也可以直接输出)；  2：仅Debug模式下可输出（作者用）
     local functionTable = {
         [0] = function()
-            print(text)
+            print(outputCache)
         end,
         [1] = function()
             if DetailOutput or AuthorDebug then
-                print(text)
+                print(outputCache)
             end
         end,
         [2] = function()
             if AuthorDebug then
-                print(text)
+                print(outputCache)
             end
         end
     }
-    functionTable[StrictStatus]()
+    outputCache = "  "
+    if not text or type(text) ~= "string" or #text <= 0 then
+        return nil
+    end
+    local length = 2 -- 字符的个数
+    local i = 1
+    while true do
+        local curByte = string.byte(text, i)
+        local byteCount = 1
+        if curByte > 239 then
+            byteCount = 4 -- 4字节字符
+        elseif curByte > 223 then
+            byteCount = 3 -- 汉字
+        elseif curByte > 128 then
+            byteCount = 2 -- 双字节字符
+        else
+            byteCount = 1 -- 单字节字符
+            length = length - 1
+        end
+        local char = string.sub(text, i, i + byteCount - 1)
+        outputCache = outputCache .. char
+        i = i + byteCount
+        length = length + 2
+        if (length > 21) then
+            functionTable[StrictStatus]()
+            outputCache = ""
+            length = 0
+        end
+        if i > #text then
+            functionTable[StrictStatus]()
+            return
+        end
+    end
 end
 
 DetailOutput = false        --详细模式开关，开启后可输出详细级别的控制台信息
-AuthorDebug = false         --DEBUG模式开关，开启则输出全部控制台信息
+AuthorDebug = true          --DEBUG模式开关，开启则输出全部控制台信息
 Game.Rule.breakable = false --地图是否可破坏
 SelfDamage = false          --对自己的伤害是否有效
 AccidentDamage = false      --是否计算意外伤害
@@ -111,7 +143,6 @@ function AttachEffect(action, effectname, playername, effect) --Action: Change, 
         then
             lastkey = 0;
             if (PlayerEffectList[playername][1] == nil) then
-                Print("Yes", 0)
                 return 1
             end
             for key, value in ipairs(PlayerEffectList[playername])
@@ -162,15 +193,25 @@ function AttachEffect(action, effectname, playername, effect) --Action: Change, 
             victimName = nil,
             allowMulti = nil,
             startTime = 0,
-            finishCallBack = nil
+            finishCallBack = nil,
+            startCallBack = nil,
+            startCallBackFinish = false
         }
         if (init == "init")
         then
-            Print("Init", 0)
             PlayerEffectList[playername] = {}
             return
         end
 
+        --通用参数
+        infoList.startTime = GameTime
+        infoList.time = effect.time
+        infoList.tag = effect.tag
+        infoList.finishCallBack = effect.finishCallBack
+        infoList.startCallBack = effect.startCallBack
+        infoList.startCallBackFinish = false
+
+        --特别参数
         local functionTable = {
             ["ChangeSpeed"] = function()
                 --速度如遇到多个效果，需考虑叠加后的优先级。
@@ -178,39 +219,32 @@ function AttachEffect(action, effectname, playername, effect) --Action: Change, 
                 --allowOverride：0：禁止；1：允许；2：允许更高；3：允许更低；
                 --time：>=0：正常计算时长；-1：无限时长
                 infoList.effect = "ChangeSpeed"
-                infoList.tag = effect.tag
                 infoList.speed = effect.speed
                 infoList.priority = effect.priority
                 infoList.allowOverride = effect.allowOverride
-                infoList.time = effect.time
                 infoList.allowMulti = ChangeSpeedAllowMulti
+                Print(playername .. "获得 " .. effect.tag .. " 速度效果", 1)
             end,
             ["TrapPlayer"] = function()
                 --time：困住玩家的时间，为了防止变态，不设置无限时间属性
                 --victimName：受害者玩家名字（player.name）
                 --allowOverride：覆盖设置；0：禁止；1：允许；
                 infoList.effect = "TrapPlayer"
-                infoList.tag = effect.tag
                 infoList.victimName = effect.victimName
-                infoList.time = effect.time
                 infoList.allowOverride = effect.allowOverride
                 infoList.allowMulti = TrapPlayerAllowMulti
+                Print(playername .. " 使用鬼手困住了 " .. effect.victimName, 1)
             end,
             ["Invisible"] = function()
                 --time：隐身时间，不提供无限时间
                 --allowOverride：覆盖设置；0：禁止；1：允许；2：叠加；
                 infoList.effect = "Invisible"
-                infoList.tag = effect.tag
-                infoList.time = effect.time
                 infoList.allowOverride = effect.allowOverride
                 infoList.allowMulti = InvisibleAllowMulti
+                Print(playername .. " 进入隐身", 1)
             end
         }
         functionTable[effectname]()
-        Print(GameTime, 0)
-        infoList.startTime = GameTime
-        infoList.finishCallBack = effect.finishCallBack
-        infoList.startCallBack = effect.startCallBack
         PlayerEffectList[playername][init] = infoList
     end
     local function DeleteEffect()
@@ -250,9 +284,13 @@ function AttachEffect(action, effectname, playername, effect) --Action: Change, 
         ["ChangeSpeed"] = function()
             --先检查信息是否无误，是否无冲突，整合进checkAvaliable
             position = checkAvaliableReturnPosition()
-            Print(position, 0)
             if (position ~= -1) then
                 AddEffectRequest(position)
+                if effect.startCallBack and (not effect.startCallBackFinish)
+                then
+                    effect.startCallBack()
+                    effect.startCallBackFinish = true
+                end
             end
         end,
         ["TrapPlayer"] = function()
@@ -295,6 +333,8 @@ function EffectUpdater()
         if (Priority < infoList.priority) then
             PlayerSpeed = infoList.speed
             Priority = infoList.priority
+        elseif Priority == infoList.priority then
+            PlayerSpeed = infoList.speed * PlayerSpeed
         end
     end
 
@@ -309,15 +349,12 @@ function EffectUpdater()
 
         --end
         for uselesskey, infoListValue in pairs(playervalue) do
-            Print(infoListValue.startTime, 0)
             if infoListValue.effect == "ChangeSpeed" then
                 MixSpeedInfo(namekey, infoListValue)
             end
             ExpireManager(namekey, infoListValue)
         end
-        if (PlayerSpeed ~= 1) then
-            FindPlayerByName(namekey).maxspeed = PlayerSpeed
-        end
+        FindPlayerByName(namekey).maxspeed = PlayerSpeed
     end
 end
 
@@ -426,19 +463,6 @@ Score[Game.TEAM.TR] = Game.SyncValue.Create("ScoreTR")
 Score[Game.TEAM.TR].value = 0
 
 
-function UpdateRunSkill5(player) --开5的实现函数
-    if player.model == Game.MODEL.DEFAULT then
-        if IfSkillActive(5, player) then
-            player.maxspeed = 1.3
-        elseif Skill5[player.name] ~= nil then
-            if Skill5[player.name] > Skill5Time and Skill5[player.name] < Skill5Time + Skill5BadTime then
-                player.maxspeed = 0.6
-            else
-                player.maxspeed = 1
-            end
-        end
-    end
-end
 
 function UpdateRunSkill6(player) --开6的实现函数
     if player.model == Game.MODEL.DEFAULT then
@@ -457,6 +481,29 @@ function PerformSkill(skill, player)
             if Skill5[player.name] == -1 then
                 Skill5[player.name] = 0
                 Skill5StartTime[player.name] = GameTime
+                AttachEffect("Add", "ChangeSpeed", "LineCatOvO", {
+                    effect = "ChangeSpeed",
+                    tag = "5技能",
+                    speed = 1.3,
+                    priority = 1,
+                    allowOverride = 0,
+                    time = 15,
+                    allowMulti = true,
+                    finishCallBack =
+                        function()
+                            AttachEffect("Add", "ChangeSpeed", "LineCatOvO", {
+                                effect = "ChangeSpeed",
+                                tag = "5技能反作用",
+                                speed = 0.6,
+                                priority = 2,
+                                allowOverride = 0,
+                                time = 4,
+                                allowMulti = true,
+                                startCallBack = nil,
+                                finishCallBack = nil
+                            })
+                        end
+                })
             end
         elseif skill == 6 then
             if Skill6[player.name] == -1 then
