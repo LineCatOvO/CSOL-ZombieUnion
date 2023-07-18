@@ -47,6 +47,9 @@ function MaxKill:OnSync()
 end
 
 function UI.Event:OnChat(inputs)
+    if string.find(inputs,"effect") then
+        
+    end
     if inputs == "kill" then
         --UI.Signal(666)
     end

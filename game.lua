@@ -117,7 +117,7 @@ function AttachEffect(action, effectname, playername, effect)
                                 return
                                     key               --可以复写
                             else
-                                if (value.allowMulti) --允许多个
+                                if (value.allowMulti) --允许多个实例
                                 then
                                 else
                                     return -1 --禁止复写
@@ -133,7 +133,7 @@ function AttachEffect(action, effectname, playername, effect)
                                 return
                                     key               --可以复写
                             else
-                                if (value.allowMulti) --允许多个
+                                if (value.allowMulti) --允许多个实例
                                 then
                                 else
                                     return -1 --禁止复写
@@ -149,7 +149,7 @@ function AttachEffect(action, effectname, playername, effect)
                                 return
                                     key               --可以复写
                             else
-                                if (value.allowMulti) --允许多个
+                                if (value.allowMulti) --允许多个实例
                                 then
                                 else
                                     return -1 --禁止复写
@@ -224,8 +224,9 @@ function AttachEffect(action, effectname, playername, effect)
     local functionTable = {
         ["ChangeSpeed"] = function()
             --先检查信息是否无误，是否无冲突，整合进checkAvaliable
-            if (checkAvaliableReturnPosition()) then
-                AddEffectRequest()
+            position=checkAvaliableReturnPosition()
+            if (position~=-1) then
+                AddEffectRequest(position)
             end
         end,
         ["TrapPlayer"] = function()
